@@ -24,6 +24,11 @@ import type {
 import mapValues from 'lodash/mapValues.js';
 import pick from 'lodash/pick.js';
 
+import {
+  CalledExtractOnStoreError,
+  MissingStoryFromCsfFileError,
+} from '@storybook/core-events/preview-errors';
+import { deprecate } from '@storybook/client-logger';
 import { HooksContext } from '../addons';
 import { StoryIndexStore } from './StoryIndexStore';
 import { ArgsStore } from './ArgsStore';
@@ -184,9 +189,8 @@ export class StoryStore<TRenderer extends Renderer> {
     csfFile: CSFFile<TRenderer>;
   }): PreparedStory<TRenderer> {
     const storyAnnotations = csfFile.stories[storyId];
-    if (!storyAnnotations) {
-      throw new Error(`Didn't find '${storyId}' in CSF file, this is unexpected`);
-    }
+    if (!storyAnnotations) throw new MissingStoryFromCsfFileError({ storyId });
+
     const componentAnnotations = csfFile.meta;
 
     const story = this.prepareStoryWithCache(
@@ -248,8 +252,7 @@ export class StoryStore<TRenderer extends Renderer> {
     options: { includeDocsOnly?: boolean } = { includeDocsOnly: false }
   ): Record<StoryId, StoryContextForEnhancers<TRenderer>> {
     const { cachedCSFFiles } = this;
-    if (!cachedCSFFiles)
-      throw new Error('Cannot call extract() unless you call cacheAllCSFFiles() first.');
+    if (!cachedCSFFiles) throw new CalledExtractOnStoreError({});
 
     return Object.entries(this.storyIndex.entries).reduce(
       (acc, [storyId, { type, importPath }]) => {
@@ -332,13 +335,22 @@ export class StoryStore<TRenderer extends Renderer> {
   };
 
   raw(): BoundStory<TRenderer>[] {
+    deprecate(
+      'StoryStore.raw() is deprecated and will be removed in 9.0, please use extract() instead'
+    );
     return Object.values(this.extract())
       .map(({ id }: { id: StoryId }) => this.fromId(id))
       .filter(Boolean) as BoundStory<TRenderer>[];
   }
 
   fromId(storyId: StoryId): BoundStory<TRenderer> | null {
+    deprecate(
+      'StoryStore.fromId() is deprecated and will be removed in 9.0, please use loadStory() instead'
+    );
+
+    // Deprecated so won't make a proper error for this
     if (!this.cachedCSFFiles)
+      // eslint-disable-next-line local-rules/no-uncategorized-errors
       throw new Error('Cannot call fromId/raw() unless you call cacheAllCSFFiles() first.');
 
     let importPath;
