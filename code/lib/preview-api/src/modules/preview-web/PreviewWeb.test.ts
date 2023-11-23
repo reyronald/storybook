@@ -108,7 +108,7 @@ async function createAndRenderPreview({
   getProjectAnnotations?: () => ProjectAnnotations<Renderer>;
 } = {}) {
   const preview = new PreviewWeb(inputImportFn, inputGetProjectAnnotations);
-  await preview.initialize();
+  await preview.ready();
   await waitForRender();
 
   return preview;
@@ -137,13 +137,13 @@ beforeEach(() => {
 });
 
 describe('PreviewWeb', () => {
-  describe('initialize', () => {
+  describe('ready', () => {
     it('shows an error if getProjectAnnotations throws', async () => {
       const err = new Error('meta error');
       const preview = new PreviewWeb(importFn, () => {
         throw err;
       });
-      await expect(preview.initialize()).rejects.toThrow(err);
+      await expect(preview.ready()).rejects.toThrow(err);
 
       expect(preview.view.showErrorDisplay).toHaveBeenCalled();
       expect(mockChannel.emit).toHaveBeenCalledWith(CONFIG_ERROR, err);
@@ -154,7 +154,7 @@ describe('PreviewWeb', () => {
       mockFetchResult = { status: 500, text: async () => err.toString() };
 
       const preview = new PreviewWeb(importFn, getProjectAnnotations);
-      await expect(preview.initialize()).rejects.toThrow('sort error');
+      await expect(preview.ready()).rejects.toThrow('sort error');
 
       expect(preview.view.showErrorDisplay).toHaveBeenCalled();
       expect(mockChannel.emit).toHaveBeenCalledWith(CONFIG_ERROR, expect.any(Error));
@@ -224,7 +224,7 @@ describe('PreviewWeb', () => {
       const preview = new PreviewWeb(importFn, async () => {
         return getProjectAnnotations();
       });
-      await preview.initialize();
+      await preview.ready();
 
       expect(preview.storyStore!.globals.get()).toEqual({ a: 'b' });
     });
@@ -511,7 +511,7 @@ describe('PreviewWeb', () => {
           renderToCanvas: undefined,
         });
         const preview = new PreviewWeb(importFn, getProjectAnnotations);
-        await expect(preview.initialize()).rejects.toThrow();
+        await expect(preview.ready()).rejects.toThrow();
 
         expect(preview.view.showErrorDisplay).toHaveBeenCalled();
         expect((preview.view.showErrorDisplay as jest.Mock).mock.calls[0][0])
@@ -624,7 +624,7 @@ describe('PreviewWeb', () => {
         });
 
         const preview = new PreviewWeb(importFn, getProjectAnnotations);
-        await preview.initialize();
+        await preview.ready();
 
         await waitForRender();
 
@@ -928,7 +928,7 @@ describe('PreviewWeb', () => {
         document.location.search = '?id=component-one--a';
         componentOneExports.default.loaders[0].mockImplementationOnce(async () => gate);
 
-        await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+        await new PreviewWeb(importFn, getProjectAnnotations).ready();
         await waitForRenderPhase('loading');
 
         expect(componentOneExports.default.loaders[0]).toHaveBeenCalledWith(
@@ -989,7 +989,7 @@ describe('PreviewWeb', () => {
         document.location.search = '?id=component-one--a';
         projectAnnotations.renderToCanvas.mockImplementation(async () => gate);
 
-        await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+        await new PreviewWeb(importFn, getProjectAnnotations).ready();
         await waitForRenderPhase('rendering');
 
         emitter.emit(UPDATE_STORY_ARGS, {
@@ -1068,7 +1068,7 @@ describe('PreviewWeb', () => {
         });
 
         document.location.search = '?id=component-one--a';
-        await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+        await new PreviewWeb(importFn, getProjectAnnotations).ready();
         await waitForRenderPhase('playing');
 
         await renderToCanvasCalled;
@@ -1492,7 +1492,7 @@ describe('PreviewWeb', () => {
 
       document.location.search = '?id=component-one--a';
       projectAnnotations.renderToCanvas.mockImplementation(async () => gate);
-      await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+      await new PreviewWeb(importFn, getProjectAnnotations).ready();
       await waitForRenderPhase('rendering');
 
       expect(projectAnnotations.renderToCanvas).toHaveBeenCalledWith(
@@ -1584,11 +1584,11 @@ describe('PreviewWeb', () => {
       expect(mockChannel.emit).toHaveBeenCalledWith(STORY_MISSING, 'random');
     });
 
-    describe('if called before the preview is initialized', () => {
+    describe('if called before the preview is readyd', () => {
       it('works when there was no selection specifier', async () => {
         document.location.search = '';
         // We intentionally are *not* awaiting here
-        new PreviewWeb(importFn, getProjectAnnotations).initialize();
+        new PreviewWeb(importFn, getProjectAnnotations).ready();
 
         emitter.emit(SET_CURRENT_STORY, { storyId: 'component-one--b', viewMode: 'story' });
 
@@ -1613,11 +1613,11 @@ describe('PreviewWeb', () => {
       it('works when there was a selection specifier', async () => {
         document.location.search = '?id=component-one--a';
 
-        const initialized = new PreviewWeb(importFn, getProjectAnnotations).initialize();
+        const readyd = new PreviewWeb(importFn, getProjectAnnotations).ready();
 
         emitter.emit(SET_CURRENT_STORY, { storyId: 'component-one--b', viewMode: 'story' });
 
-        await initialized;
+        await readyd;
         await waitForEvents([STORY_RENDERED]);
 
         // If we emitted CURRENT_STORY_WAS_SET for the original selection, the manager might
@@ -1728,9 +1728,9 @@ describe('PreviewWeb', () => {
             });
 
           const preview = new PreviewWeb(importFn, getProjectAnnotations);
-          // We can't wait for the initialize function, as it waits for `renderSelection()`
+          // We can't wait for the ready function, as it waits for `renderSelection()`
           // which prepares, but it does emit `CURRENT_STORY_WAS_SET` right before that
-          preview.initialize();
+          preview.ready();
           await waitForEvents([CURRENT_STORY_WAS_SET]);
 
           mockChannel.emit.mockClear();
@@ -1777,9 +1777,9 @@ describe('PreviewWeb', () => {
             });
 
           const preview = new PreviewWeb(importFn, getProjectAnnotations);
-          // We can't wait for the initialize function, as it waits for `renderSelection()`
+          // We can't wait for the ready function, as it waits for `renderSelection()`
           // which prepares, but it does emit `CURRENT_STORY_WAS_SET` right before that
-          preview.initialize();
+          preview.ready();
           await waitForEvents([CURRENT_STORY_WAS_SET]);
 
           mockChannel.emit.mockClear();
@@ -1825,9 +1825,9 @@ describe('PreviewWeb', () => {
             });
 
           const preview = new PreviewWeb(importFn, getProjectAnnotations);
-          // We can't wait for the initialize function, as it waits for `renderSelection()`
+          // We can't wait for the ready function, as it waits for `renderSelection()`
           // which prepares, but it does emit `CURRENT_STORY_WAS_SET` right before that
-          preview.initialize();
+          preview.ready();
           await waitForEvents([CURRENT_STORY_WAS_SET]);
 
           mockChannel.emit.mockClear();
@@ -2159,7 +2159,7 @@ describe('PreviewWeb', () => {
           componentOneExports.default.loaders[0].mockImplementationOnce(async () => gate);
 
           document.location.search = '?id=component-one--a';
-          await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+          await new PreviewWeb(importFn, getProjectAnnotations).ready();
           await waitForRenderPhase('loading');
 
           emitter.emit(SET_CURRENT_STORY, {
@@ -2192,7 +2192,7 @@ describe('PreviewWeb', () => {
 
           document.location.search = '?id=component-one--a';
           projectAnnotations.renderToCanvas.mockImplementation(async () => gate);
-          await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+          await new PreviewWeb(importFn, getProjectAnnotations).ready();
           await waitForRenderPhase('rendering');
 
           mockChannel.emit.mockClear();
@@ -2226,7 +2226,7 @@ describe('PreviewWeb', () => {
           componentOneExports.a.play.mockImplementationOnce(async () => gate);
 
           document.location.search = '?id=component-one--a';
-          await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+          await new PreviewWeb(importFn, getProjectAnnotations).ready();
           await waitForRenderPhase('playing');
 
           expect(projectAnnotations.renderToCanvas).toHaveBeenCalledWith(
@@ -2279,7 +2279,7 @@ describe('PreviewWeb', () => {
           componentOneExports.a.play.mockImplementationOnce(async () => gate);
 
           document.location.search = '?id=component-one--a';
-          await new PreviewWeb(importFn, getProjectAnnotations).initialize();
+          await new PreviewWeb(importFn, getProjectAnnotations).ready();
           await waitForRenderPhase('playing');
 
           expect(projectAnnotations.renderToCanvas).toHaveBeenCalledWith(
@@ -2711,7 +2711,7 @@ describe('PreviewWeb', () => {
         mockFetchResult = { status: 500, text: async () => err.toString() };
 
         const preview = new PreviewWeb(importFn, getProjectAnnotations);
-        await expect(preview.initialize()).rejects.toThrow('sort error');
+        await expect(preview.ready()).rejects.toThrow('sort error');
 
         expect(preview.view.showErrorDisplay).toHaveBeenCalled();
         expect(mockChannel.emit).toHaveBeenCalledWith(CONFIG_ERROR, expect.any(Error));
@@ -2729,7 +2729,7 @@ describe('PreviewWeb', () => {
         mockFetchResult = { status: 500, text: async () => err.toString() };
 
         const preview = new PreviewWeb(importFn, getProjectAnnotations);
-        await expect(preview.initialize()).rejects.toThrow('sort error');
+        await expect(preview.ready()).rejects.toThrow('sort error');
 
         expect(preview.view.showErrorDisplay).toHaveBeenCalled();
         expect(mockChannel.emit).toHaveBeenCalledWith(CONFIG_ERROR, expect.any(Error));
@@ -3314,7 +3314,7 @@ describe('PreviewWeb', () => {
         const preview = new PreviewWeb(importFn, () => {
           throw err;
         });
-        await expect(preview.initialize()).rejects.toThrow(err);
+        await expect(preview.ready()).rejects.toThrow(err);
 
         preview.onGetProjectAnnotationsChanged({ getProjectAnnotations });
         await waitForRender();
@@ -3329,7 +3329,7 @@ describe('PreviewWeb', () => {
         const preview = new PreviewWeb(importFn, () => {
           throw err;
         });
-        await expect(preview.initialize()).rejects.toThrow(err);
+        await expect(preview.ready()).rejects.toThrow(err);
 
         preview.onGetProjectAnnotationsChanged({ getProjectAnnotations });
         await waitForRender();
@@ -3511,7 +3511,7 @@ describe('PreviewWeb', () => {
       const [gate, openGate] = createGate();
       componentOneExports.a.play.mockImplementationOnce(async () => gate);
       const preview = new PreviewWeb(importFn, getProjectAnnotations);
-      await preview.initialize();
+      await preview.ready();
       await waitForRenderPhase('playing');
 
       await preview.onKeydown({
@@ -3558,7 +3558,7 @@ describe('PreviewWeb', () => {
       const preview = new PreviewWeb(importFn, () => {
         throw err;
       });
-      await expect(preview.initialize()).rejects.toThrow(/meta error/);
+      await expect(preview.ready()).rejects.toThrow(/meta error/);
       await expect(preview.extract()).rejects.toThrow();
     });
 
@@ -3567,7 +3567,7 @@ describe('PreviewWeb', () => {
       mockFetchResult = { status: 500, text: async () => err.toString() };
 
       const preview = new PreviewWeb(importFn, getProjectAnnotations);
-      await expect(preview.initialize()).rejects.toThrow('sort error');
+      await expect(preview.ready()).rejects.toThrow('sort error');
 
       await expect(preview.extract()).rejects.toThrow();
     });
