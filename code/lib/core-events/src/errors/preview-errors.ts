@@ -70,11 +70,36 @@ export class MissingStoryFromCsfFileError extends StorybookError {
     Please check your browser console and terminal for errors that may explain the issue.`;
   }
 }
+export class ImplicitActionsDuringRendering extends StorybookError {
+  readonly category = Category.PREVIEW_API;
+
+  readonly code = 3;
+
+  readonly documentation =
+    'https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#using-implicit-actions-during-rendering-is-deprecated-for-example-in-the-play-function';
+
+  constructor(public data: { phase: string; name: string; deprecated: boolean }) {
+    super();
+  }
+
+  template() {
+    return dedent`
+      We detected that you use an implicit action arg during ${this.data.phase} of your story.  
+      ${this.data.deprecated ? `\nThis is deprecated and won't work in Storybook 8 anymore.\n` : ``}
+      Please provide an explicit spy to your args like this:
+        import { fn } from '@storybook/test';
+        ... 
+        args: {
+         ${this.data.name}: fn()
+        }
+    `;
+  }
+}
 
 export class CalledExtractOnStoreError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 3;
+  readonly code = 4;
 
   constructor(public data: object) {
     super();
@@ -91,8 +116,8 @@ export class CalledExtractOnStoreError extends StorybookError {
 export class MissingRenderToCanvasError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 4;
-  
+  readonly code = 5;
+
   readonly documentation =
     'https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#mainjs-framework-field';
 
@@ -103,11 +128,10 @@ export class MissingRenderToCanvasError extends StorybookError {
       Perhaps it needs to be upgraded for Storybook 6.4?`;
   }
 }
-
 export class CalledPreviewMethodBeforeInitializationError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 5;
+  readonly code = 6;
 
   constructor(public data: { methodName: string }) {
     super();
@@ -128,7 +152,7 @@ export class CalledPreviewMethodBeforeInitializationError extends StorybookError
 export class StoryIndexFetchError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 6;
+  readonly code = 7;
 
   constructor(public data: { text: string }) {
     super();
@@ -151,7 +175,7 @@ export class StoryIndexFetchError extends StorybookError {
 export class MdxFileWithNoCsfReferencesError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 7;
+  readonly code = 8;
 
   constructor(public data: { storyId: string }) {
     super();
@@ -170,7 +194,7 @@ export class MdxFileWithNoCsfReferencesError extends StorybookError {
 export class EmptyIndexError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 8;
+  readonly code = 9;
 
   constructor(public data: object) {
     super();
@@ -188,7 +212,7 @@ export class EmptyIndexError extends StorybookError {
 export class NoStoryMatchError extends StorybookError {
   readonly category = Category.PREVIEW_API;
 
-  readonly code = 9;
+  readonly code = 10;
 
   constructor(public data: { storySpecifier: string }) {
     super();
