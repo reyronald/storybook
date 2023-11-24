@@ -452,7 +452,7 @@ describe('StoryStore', () => {
     it('throws if you have not called cacheAllCSFFiles', async () => {
       const store = new StoryStore(storyIndex, importFn, projectAnnotations);
 
-      expect(() => store.extract()).toThrow(/Cannot call extract/);
+      expect(() => store.extract()).toThrow(/Cannot call `storyStore.extract/);
     });
 
     it('produces objects with functions and hooks stripped', async () => {

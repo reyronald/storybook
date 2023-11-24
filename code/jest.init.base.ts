@@ -26,6 +26,9 @@ Object.defineProperty(global, 'localStorage', { value: localStorageMock, writabl
  */
 
 const ignoreList = [
+  (error: any) => error.message.includes('StoryStore.fromId() is deprecated and will be removed'),
+  (error: any) =>
+    error.message.includes('StoryStore.raw() is deprecated and will be removed in 9.0'),
   (error: any) => error.message.includes('":nth-child" is potentially unsafe'),
   (error: any) => error.message.includes('":first-child" is potentially unsafe'),
   (error: any) => error.message.match(/Browserslist: .* is outdated. Please run:/),
