@@ -91,4 +91,52 @@ test.describe('SvelteKit', () => {
     });
     await expect(complexLogItem).toBeVisible();
   });
+
+  test('goto are logged in Actions panel', async ({ page }) => {
+    const sbPage = new SbPage(page);
+
+    await sbPage.navigateToStory('stories/sveltekit/modules/navigation', 'default-actions');
+    const root = sbPage.previewRoot();
+    await sbPage.viewAddonPanel('Actions');
+
+    const goto = root.locator('button', { hasText: 'goto' });
+    await goto.click();
+
+    const gotoLogItem = page.locator('#storybook-panel-root #panel-tab-content', {
+      hasText: `/storybook-goto`,
+    });
+    await expect(gotoLogItem).toBeVisible();
+
+    const invalidate = root.getByRole('button', { name: 'invalidate', exact: true });
+    await invalidate.click();
+
+    const invalidateLogItem = page.locator('#storybook-panel-root #panel-tab-content', {
+      hasText: `/storybook-invalidate`,
+    });
+    await expect(invalidateLogItem).toBeVisible();
+
+    const invalidateAll = root.getByRole('button', { name: 'invalidateAll' });
+    await invalidateAll.click();
+
+    const invalidateAllLogItem = page.locator('#storybook-panel-root #panel-tab-content', {
+      hasText: `"invalidateAll"`,
+    });
+    await expect(invalidateAllLogItem).toBeVisible();
+
+    const replaceState = root.getByRole('button', { name: 'replaceState' });
+    await replaceState.click();
+
+    const replaceStateLogItem = page.locator('#storybook-panel-root #panel-tab-content', {
+      hasText: `/storybook-replace-state`,
+    });
+    await expect(replaceStateLogItem).toBeVisible();
+
+    const pushState = root.getByRole('button', { name: 'pushState' });
+    await pushState.click();
+
+    const pushStateLogItem = page.locator('#storybook-panel-root #panel-tab-content', {
+      hasText: `/storybook-push-state`,
+    });
+    await expect(pushStateLogItem).toBeVisible();
+  });
 });
